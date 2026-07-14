@@ -8,7 +8,7 @@ Roda como um processo Java comum, com playit.gg ou frp para acesso externo. Sem 
 
 - Linux x86-64
 - Python 3
-- tmux
+- zstd
 - curl
 - Acesso à internet nas portas 80, 443, 8080 ou 8443
 
@@ -36,19 +36,38 @@ Todas as opções ficam no `.env`:
 
 ## Comandos
 
+### Setup
+
 ```
-just bootstrap       # instala Java 25, PaperMC, playit e frpc (executar uma vez)
-just up              # sobe o servidor em background e indica como iniciar o túnel
-just down            # para tudo
-just status          # mostra o status dos serviços
-just mc-start        # inicia o servidor em primeiro plano (útil para debug)
-just mc-up           # inicia o servidor em background (tmux)
-just mc-down         # para o servidor graciosamente
-just mc-console      # abre o console do servidor (Ctrl+B D para sair)
-just tunnel-playit   # inicia o túnel pelo playit.gg (siga a URL exibida no terminal)
-just tunnel-frp      # inicia o túnel frp em primeiro plano
-just tunnel-frp-up   # inicia o túnel frp em background (tmux)
-just tunnel-frp-down # para o túnel frp
+just bootstrap          # instala Java 25, PaperMC, tmux, playit e frpc (executar uma vez)
+```
+
+### Servidor
+
+```
+just mc-up              # inicia o servidor em background (tmux)
+just mc-down            # para o servidor graciosamente
+just mc-console         # abre o console do servidor (Ctrl+B D para sair)
+just mc-status          # verifica se o servidor está rodando
+just mc-start           # inicia o servidor em primeiro plano (útil para debug)
+```
+
+### Túnel
+
+```
+just tunnel-playit      # inicia o túnel pelo playit.gg (siga a URL exibida no terminal)
+just tunnel-frp-up      # inicia o túnel frp em background (tmux)
+just tunnel-frp-down    # para o túnel frp
+just tunnel-frp-console # abre o console do túnel frp (Ctrl+B D para sair)
+just tunnel-frp         # inicia o túnel frp em primeiro plano (útil para debug)
+```
+
+### Stack completa
+
+```
+just up                 # sobe o servidor em background e exibe opções de túnel
+just down               # para o servidor e o túnel frp
+just status             # mostra o status de todos os serviços
 ```
 
 ## Túnel
@@ -72,4 +91,5 @@ just tunnel-frp-up
 
 - `online-mode` está desativado por padrão — necessário para launchers não-oficiais
 - O Java 25 é instalado localmente em `$DATA_DIR/jdk`, sem alterar o Java do sistema
+- O tmux é instalado localmente em `$BIN_DIR`, sem alterar o tmux do sistema
 - Todos os binários vão para `$BIN_DIR` — nenhum comando requer sudo

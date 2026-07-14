@@ -55,18 +55,20 @@ just mc-start           # inicia o servidor em primeiro plano (útil para debug)
 ### Túnel
 
 ```
-just tunnel-playit      # inicia o túnel pelo playit.gg (siga a URL exibida no terminal)
-just tunnel-frp-up      # inicia o túnel frp em background (tmux)
-just tunnel-frp-down    # para o túnel frp
-just tunnel-frp-console # abre o console do túnel frp (Ctrl+B D para sair)
-just tunnel-frp         # inicia o túnel frp em primeiro plano (útil para debug)
+just tunnel-playit         # inicia o túnel playit.gg em background (tmux)
+just tunnel-playit-console # abre o console do playit (siga a URL de claim na primeira vez)
+just tunnel-playit-down    # para o túnel playit.gg
+just tunnel-frp-up         # inicia o túnel frp em background (tmux)
+just tunnel-frp-down       # para o túnel frp
+just tunnel-frp-console    # abre o console do túnel frp (Ctrl+B D para sair)
+just tunnel-frp            # inicia o túnel frp em primeiro plano (útil para debug)
 ```
 
 ### Stack completa
 
 ```
 just up                 # sobe o servidor em background e exibe opções de túnel
-just down               # para o servidor e o túnel frp
+just down               # para o servidor e todos os túneis
 just status             # mostra o status de todos os serviços
 ```
 
@@ -77,7 +79,7 @@ Gratuito, sem servidor próprio. Região São Paulo disponível no plano pago (~
 
 ```bash
 just tunnel-playit
-# siga a URL de claim exibida no terminal para registrar o agente
+just tunnel-playit-console  # abra para ver e seguir a URL de claim na primeira vez
 ```
 
 ### frp (auto-hospedado)

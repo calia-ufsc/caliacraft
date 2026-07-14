@@ -69,10 +69,23 @@ mc-status:
 
 # ── Tunnel ────────────────────────────────────────────────────────────────────
 
-# Start the playit.gg tunnel interactively (follow the claim URL on first run)
+# Start the playit.gg tunnel in a background tmux session (follow the claim URL on first run)
 tunnel-playit:
-    mkdir -p ~/.config/playit_gg
-    {{BIN_DIR}}/playit
+    @tmux has-session -t playit 2>/dev/null \
+      && echo "already running — attach with: just tunnel-playit-console" \
+      || (mkdir -p ~/.config/playit_gg \
+          && tmux new-session -d -s playit "{{BIN_DIR}}/playit" \
+          && echo "playit started — attach with: just tunnel-playit-console")
+
+# Attach to the playit tunnel session (detach with Ctrl+B D)
+tunnel-playit-console:
+    tmux attach -t playit
+
+# Stop the playit tunnel
+tunnel-playit-down:
+    @tmux has-session -t playit 2>/dev/null \
+      && (tmux kill-session -t playit && echo "playit stopped") \
+      || echo "playit is not running"
 
 # Start the frp tunnel in the foreground
 tunnel-frp:
@@ -102,15 +115,17 @@ up:
     just mc-up
     @echo ""
     @echo "Start a tunnel:"
-    @echo "  just tunnel-playit    # playit.gg (interactive, follow the claim URL)"
+    @echo "  just tunnel-playit    # playit.gg (background, follow claim URL via just tunnel-playit-console)"
     @echo "  just tunnel-frp-up    # frp (background, requires ~/.config/frp/frpc.toml)"
 
-# Stop Minecraft and the frp tunnel
+# Stop Minecraft and all tunnels
 down:
     just mc-down
     just tunnel-frp-down
+    just tunnel-playit-down
 
 # Show status of all services
 status:
     @echo "Minecraft : $(just mc-status)"
-    @tmux has-session -t frpc 2>/dev/null && echo "frpc      : running" || echo "frpc      : stopped"
+    @tmux has-session -t frpc 2>/dev/null   && echo "frpc      : running" || echo "frpc      : stopped"
+    @tmux has-session -t playit 2>/dev/null && echo "playit    : running" || echo "playit    : stopped"

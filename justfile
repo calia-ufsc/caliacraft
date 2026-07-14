@@ -114,9 +114,11 @@ tunnel-playit-down:
       echo "playit is not running"
     fi
 
+FRP_CONFIG := justfile_directory() + "/config/frpc.toml"
+
 # Start the frp tunnel in the foreground
 tunnel-frp:
-    {{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml
+    {{BIN_DIR}}/frpc -c {{FRP_CONFIG}}
 
 # Start the frp tunnel in the background (nohup)
 tunnel-frp-up:
@@ -127,7 +129,7 @@ tunnel-frp-up:
       echo "already running (pid $(cat "$PID_FILE"))"
       exit 0
     fi
-    nohup {{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml > {{RUN_DIR}}/frpc.log 2>&1 &
+    nohup {{BIN_DIR}}/frpc -c {{FRP_CONFIG}} > {{RUN_DIR}}/frpc.log 2>&1 &
     echo $! > "$PID_FILE"
     echo "frpc started (pid $!) — logs: just tunnel-frp-logs"
 

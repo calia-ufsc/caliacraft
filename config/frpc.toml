@@ -1,0 +1,15 @@
+serverAddr = "{{ .Envs.FRP_SERVER_ADDR }}"
+serverPort = 8443
+
+auth.method = "token"
+auth.token = "{{ .Envs.FRP_TOKEN }}"
+
+[transport]
+tls.enable = true
+
+[[proxies]]
+name = "minecraft"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 25565
+remotePort = 25565

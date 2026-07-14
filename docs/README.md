@@ -1,73 +1,75 @@
 # caliacraft
 
-Minecraft server provisioning for restricted Linux environments without root access (JupyterHub, university clusters, etc.).
+Servidor de Minecraft (PaperMC) para ambientes Linux sem acesso root.
 
-Runs PaperMC as a plain Java process with playit.gg or frp for external access. No Docker, no sudo.
+Roda como um processo Java comum, com playit.gg ou frp para acesso externo. Sem Docker, sem sudo.
 
-## Requirements
+## Requisitos
 
 - Linux x86-64
-- Python 3 (for the PaperMC download step)
+- Python 3
 - tmux
 - curl
-- Outbound internet on at least one of: 80, 443, 8080, 8443
+- Acesso à internet nas portas 80, 443, 8080 ou 8443
 
-## Setup
+## Instalação
 
 ```bash
 git clone https://github.com/calia-ufsc/caliacraft
 cd caliacraft
 cp .env.example .env
-# edit .env — set DATA_DIR to a persistent path if needed
+# edite o .env conforme necessário
 bash bootstrap.sh
 ```
 
-## Configuration
+## Configuração
 
-All config lives in `.env`:
+Todas as opções ficam no `.env`:
 
-| Variable | Default | Description |
+| Variável | Padrão | Descrição |
 |---|---|---|
-| `DATA_DIR` | `~/data` | Where Minecraft data and JDK are stored — point to persistent storage |
-| `BIN_DIR` | `~/bin` | Where binaries are installed |
-| `PAPER_VERSION` | `26.2` | Minecraft / PaperMC version |
-| `MC_RAM_MIN` | `2G` | JVM min heap |
-| `MC_RAM_MAX` | `8G` | JVM max heap |
-| `TUNNEL_MODE` | `playit` | `playit` or `frp` |
+| `DATA_DIR` | `~/data` | Onde os dados do servidor e o JDK são armazenados — aponte para um diretório persistente se necessário |
+| `BIN_DIR` | `~/bin` | Onde os binários são instalados |
+| `PAPER_VERSION` | `26.2` | Versão do Minecraft / PaperMC |
+| `MC_RAM_MIN` | `2G` | Heap mínimo da JVM |
+| `MC_RAM_MAX` | `8G` | Heap máximo da JVM |
 
-On JupyterHub (UFSC): set `DATA_DIR=$HOME/privado/caliacraft`.
-
-## Commands
+## Comandos
 
 ```
-just bootstrap      # install Java 25, PaperMC, playit, frpc (run once)
-just up             # start Minecraft in background
-just down           # stop everything
-just status         # show service status
-just mc-console     # attach to Minecraft console (Ctrl+B D to detach)
-just tunnel-playit  # start playit.gg tunnel (follow the claim URL)
-just tunnel-frp-up  # start frp tunnel in background
+just bootstrap       # instala Java 25, PaperMC, playit e frpc (executar uma vez)
+just up              # sobe o servidor em background e indica como iniciar o túnel
+just down            # para tudo
+just status          # mostra o status dos serviços
+just mc-start        # inicia o servidor em primeiro plano (útil para debug)
+just mc-up           # inicia o servidor em background (tmux)
+just mc-down         # para o servidor graciosamente
+just mc-console      # abre o console do servidor (Ctrl+B D para sair)
+just tunnel-playit   # inicia o túnel pelo playit.gg (siga a URL exibida no terminal)
+just tunnel-frp      # inicia o túnel frp em primeiro plano
+just tunnel-frp-up   # inicia o túnel frp em background (tmux)
+just tunnel-frp-down # para o túnel frp
 ```
 
-## Tunnel
+## Túnel
 
-### playit.gg (recommended for beginners)
-Free tier works, no server needed. São Paulo region available on paid (~$3/mo).
+### playit.gg (recomendado)
+Gratuito, sem servidor próprio. Região São Paulo disponível no plano pago (~$3/mês).
 
 ```bash
 just tunnel-playit
-# follow the claim URL printed in the terminal
+# siga a URL de claim exibida no terminal para registrar o agente
 ```
 
-### frp (self-hosted)
-Requires a VPS running frps. Edit `~/.config/frp/frpc.toml` with your server details.
+### frp (auto-hospedado)
+Requer um VPS com frps rodando. Edite `~/.config/frp/frpc.toml` com os dados do seu servidor.
 
 ```bash
 just tunnel-frp-up
 ```
 
-## Notes
+## Observações
 
-- `online-mode` is set to `false` by default (required for unofficial launchers)
-- Java 25 is installed locally to `$DATA_DIR/jdk` — system Java is not used or modified
-- All binaries go to `$BIN_DIR` — no sudo required at any point
+- `online-mode` está desativado por padrão — necessário para launchers não-oficiais
+- O Java 25 é instalado localmente em `$DATA_DIR/jdk`, sem alterar o Java do sistema
+- Todos os binários vão para `$BIN_DIR` — nenhum comando requer sudo

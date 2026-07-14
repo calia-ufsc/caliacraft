@@ -68,6 +68,19 @@ else
   ok "Already installed: $(tmux -V)"
 fi
 
+# ── just ─────────────────────────────────────────────────────────────────────
+step "just"
+if [ ! -f "$BIN_DIR/just" ]; then
+  info "Downloading just 1.56.0..."
+  curl -Lo /tmp/just.tar.gz \
+    "https://github.com/casey/just/releases/download/1.56.0/just-1.56.0-x86_64-unknown-linux-musl.tar.gz"
+  tar -xzf /tmp/just.tar.gz -C "$BIN_DIR" just
+  rm /tmp/just.tar.gz
+  ok "just $($BIN_DIR/just --version)"
+else
+  ok "Already installed: $(just --version)"
+fi
+
 # ── playit ───────────────────────────────────────────────────────────────────
 step "playit"
 if [ ! -f "$BIN_DIR/playit" ]; then

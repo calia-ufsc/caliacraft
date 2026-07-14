@@ -8,6 +8,7 @@ MC_RAM_MAX    := env_var_or_default("MC_RAM_MAX", "8G")
 
 MINECRAFT_DIR := DATA_DIR + "/minecraft"
 JAVA          := DATA_DIR + "/jdk/bin/java"
+RUN_DIR       := DATA_DIR + "/run"
 
 [private]
 default:
@@ -35,78 +36,114 @@ mc-start:
       -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
       -jar paper-{{PAPER_VERSION}}.jar nogui
 
-# Start the Minecraft server in a background tmux session
+# Start the Minecraft server in the background (nohup)
 mc-up:
-    @tmux has-session -t minecraft 2>/dev/null \
-      && echo "already running — attach with: just mc-console" \
-      || (tmux new-session -d -s minecraft -c {{MINECRAFT_DIR}} \
-            "{{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
-              -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
-              -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
-              -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
-              -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
-              -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 \
-              -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 \
-              -XX:G1MixedGCLiveThresholdPercent=90 \
-              -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
-              -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
-              -jar paper-{{PAPER_VERSION}}.jar nogui" \
-          && echo "Minecraft started — attach with: just mc-console")
+    #!/usr/bin/env bash
+    mkdir -p {{RUN_DIR}}
+    PID_FILE={{RUN_DIR}}/minecraft.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "already running (pid $(cat "$PID_FILE"))"
+      exit 0
+    fi
+    cd {{MINECRAFT_DIR}}
+    nohup {{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
+      -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
+      -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
+      -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
+      -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
+      -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 \
+      -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 \
+      -XX:G1MixedGCLiveThresholdPercent=90 \
+      -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
+      -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
+      -jar paper-{{PAPER_VERSION}}.jar nogui \
+      > {{RUN_DIR}}/minecraft.log 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "Minecraft started (pid $!) — logs: just mc-logs"
 
 # Send a graceful stop to the Minecraft server
 mc-down:
-    @tmux has-session -t minecraft 2>/dev/null \
-      && (tmux send-keys -t minecraft "stop" Enter && echo "stop sent") \
-      || echo "server is not running"
+    #!/usr/bin/env bash
+    PID_FILE={{RUN_DIR}}/minecraft.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      kill "$(cat "$PID_FILE")" && rm "$PID_FILE" && echo "stopped"
+    else
+      echo "server is not running"
+    fi
 
-# Attach to the Minecraft server console (detach with Ctrl+B D)
-mc-console:
-    tmux attach -t minecraft
+# Tail the Minecraft server log
+mc-logs:
+    tail -f {{RUN_DIR}}/minecraft.log
 
 # Show whether the Minecraft server is running
 mc-status:
-    @tmux has-session -t minecraft 2>/dev/null && echo "running" || echo "stopped"
+    #!/usr/bin/env bash
+    PID_FILE={{RUN_DIR}}/minecraft.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "running (pid $(cat "$PID_FILE"))"
+    else
+      echo "stopped"
+    fi
 
 # ── Tunnel ────────────────────────────────────────────────────────────────────
 
-# Start the playit.gg tunnel in a background tmux session (follow the claim URL on first run)
+# Start the playit.gg tunnel in the background (nohup)
 tunnel-playit:
-    @tmux has-session -t playit 2>/dev/null \
-      && echo "already running — attach with: just tunnel-playit-console" \
-      || (mkdir -p ~/.config/playit_gg \
-          && tmux new-session -d -s playit "{{BIN_DIR}}/playit" \
-          && echo "playit started — attach with: just tunnel-playit-console")
+    #!/usr/bin/env bash
+    mkdir -p {{RUN_DIR}} ~/.config/playit_gg
+    PID_FILE={{RUN_DIR}}/playit.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "already running (pid $(cat "$PID_FILE"))"
+      exit 0
+    fi
+    nohup {{BIN_DIR}}/playit > {{RUN_DIR}}/playit.log 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "playit started (pid $!) — logs: just tunnel-playit-logs"
 
-# Attach to the playit tunnel session (detach with Ctrl+B D)
-tunnel-playit-console:
-    tmux attach -t playit
+# Tail the playit tunnel log
+tunnel-playit-logs:
+    tail -f {{RUN_DIR}}/playit.log
 
 # Stop the playit tunnel
 tunnel-playit-down:
-    @tmux has-session -t playit 2>/dev/null \
-      && (tmux kill-session -t playit && echo "playit stopped") \
-      || echo "playit is not running"
+    #!/usr/bin/env bash
+    PID_FILE={{RUN_DIR}}/playit.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      kill "$(cat "$PID_FILE")" && rm "$PID_FILE" && echo "playit stopped"
+    else
+      echo "playit is not running"
+    fi
 
 # Start the frp tunnel in the foreground
 tunnel-frp:
-    frpc -c ~/.config/frp/frpc.toml
+    {{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml
 
-# Start the frp tunnel in a background tmux session
+# Start the frp tunnel in the background (nohup)
 tunnel-frp-up:
-    @tmux has-session -t frpc 2>/dev/null \
-      && echo "already running — attach with: just tunnel-frp-console" \
-      || (tmux new-session -d -s frpc "{{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml" \
-          && echo "frpc started — attach with: just tunnel-frp-console")
+    #!/usr/bin/env bash
+    mkdir -p {{RUN_DIR}}
+    PID_FILE={{RUN_DIR}}/frpc.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "already running (pid $(cat "$PID_FILE"))"
+      exit 0
+    fi
+    nohup {{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml > {{RUN_DIR}}/frpc.log 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "frpc started (pid $!) — logs: just tunnel-frp-logs"
 
 # Stop the frp tunnel
 tunnel-frp-down:
-    @tmux has-session -t frpc 2>/dev/null \
-      && (tmux kill-session -t frpc && echo "frpc stopped") \
-      || echo "frpc is not running"
+    #!/usr/bin/env bash
+    PID_FILE={{RUN_DIR}}/frpc.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      kill "$(cat "$PID_FILE")" && rm "$PID_FILE" && echo "frpc stopped"
+    else
+      echo "frpc is not running"
+    fi
 
-# Attach to the frp tunnel session (detach with Ctrl+B D)
-tunnel-frp-console:
-    tmux attach -t frpc
+# Tail the frp tunnel log
+tunnel-frp-logs:
+    tail -f {{RUN_DIR}}/frpc.log
 
 # ── Full stack ────────────────────────────────────────────────────────────────
 
@@ -115,7 +152,7 @@ up:
     just mc-up
     @echo ""
     @echo "Start a tunnel:"
-    @echo "  just tunnel-playit    # playit.gg (background, follow claim URL via just tunnel-playit-console)"
+    @echo "  just tunnel-playit    # playit.gg (background)"
     @echo "  just tunnel-frp-up    # frp (background, requires ~/.config/frp/frpc.toml)"
 
 # Stop Minecraft and all tunnels
@@ -126,6 +163,10 @@ down:
 
 # Show status of all services
 status:
-    @echo "Minecraft : $(just mc-status)"
-    @tmux has-session -t frpc 2>/dev/null   && echo "frpc      : running" || echo "frpc      : stopped"
-    @tmux has-session -t playit 2>/dev/null && echo "playit    : running" || echo "playit    : stopped"
+    #!/usr/bin/env bash
+    mc_pid={{RUN_DIR}}/minecraft.pid
+    playit_pid={{RUN_DIR}}/playit.pid
+    frpc_pid={{RUN_DIR}}/frpc.pid
+    [ -f "$mc_pid" ]     && kill -0 "$(cat "$mc_pid")"     2>/dev/null && echo "Minecraft : running (pid $(cat "$mc_pid"))"     || echo "Minecraft : stopped"
+    [ -f "$playit_pid" ] && kill -0 "$(cat "$playit_pid")" 2>/dev/null && echo "playit    : running (pid $(cat "$playit_pid"))" || echo "playit    : stopped"
+    [ -f "$frpc_pid" ]   && kill -0 "$(cat "$frpc_pid")"   2>/dev/null && echo "frpc      : running (pid $(cat "$frpc_pid"))"   || echo "frpc      : stopped"

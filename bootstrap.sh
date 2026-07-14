@@ -13,7 +13,7 @@ step() { echo; echo "── $1 ────────────────�
 ok()   { echo "  ✓ $1"; }
 info() { echo "  → $1"; }
 
-mkdir -p "$BIN_DIR" "$MINECRAFT_DIR" "$HOME/.config/frp" "$HOME/.config/playit_gg"
+mkdir -p "$BIN_DIR" "$MINECRAFT_DIR" "$DATA_DIR/run" "$HOME/.config/frp" "$HOME/.config/playit_gg"
 
 # ── PATH ─────────────────────────────────────────────────────────────────────
 step "PATH"
@@ -22,14 +22,12 @@ if ! grep -q 'caliacraft' "$HOME/.bashrc" 2>/dev/null; then
 
 # caliacraft
 export PATH="$BIN_DIR:$DATA_DIR/jdk/bin:\$PATH"
-export LD_LIBRARY_PATH="/opt/conda/lib:\$LD_LIBRARY_PATH"
 EOF
   ok ".bashrc updated"
 else
   ok ".bashrc already configured"
 fi
 export PATH="$BIN_DIR:$DATA_DIR/jdk/bin:$PATH"
-export LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH:-}"
 
 # ── Java 25 ──────────────────────────────────────────────────────────────────
 step "Java 25"
@@ -43,29 +41,6 @@ if [ ! -f "$DATA_DIR/jdk/bin/java" ]; then
   ok "Java $($DATA_DIR/jdk/bin/java -version 2>&1 | head -1)"
 else
   ok "Already installed: $($DATA_DIR/jdk/bin/java -version 2>&1 | head -1)"
-fi
-
-# ── tmux ─────────────────────────────────────────────────────────────────────
-step "tmux"
-if [ ! -f "$BIN_DIR/tmux" ]; then
-  info "Downloading tmux 3.7b via conda-forge..."
-  curl -Lo /tmp/tmux.conda \
-    "https://api.anaconda.org/download/conda-forge/tmux/3.7b_/linux-64/tmux-3.7b_-hd811a6c_0.conda"
-  python3 - /tmp/tmux.conda << 'PYEOF'
-import sys, zipfile
-z = zipfile.ZipFile(sys.argv[1])
-pkg = [f for f in z.namelist() if f.startswith('pkg-')][0]
-z.extract(pkg, '/tmp')
-PYEOF
-  mkdir -p /tmp/tmux_pkg
-  zstd -d /tmp/pkg-tmux-3.7b_-hd811a6c_0.tar.zst -o /tmp/tmux_pkg/tmux.tar --quiet
-  tar -xf /tmp/tmux_pkg/tmux.tar -C /tmp/tmux_pkg bin/tmux
-  cp /tmp/tmux_pkg/bin/tmux "$BIN_DIR/tmux"
-  chmod +x "$BIN_DIR/tmux"
-  rm -rf /tmp/tmux.conda /tmp/pkg-tmux* /tmp/tmux_pkg
-  ok "tmux $($BIN_DIR/tmux -V)"
-else
-  ok "Already installed: $(tmux -V)"
 fi
 
 # ── just ─────────────────────────────────────────────────────────────────────

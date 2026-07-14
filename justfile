@@ -1,23 +1,27 @@
 set dotenv-load
 
-PRIVADO := env_var('HOME') + "/privado"
-MINECRAFT_DIR := PRIVADO + "/minecraft"
-JAVA := PRIVADO + "/jdk25/bin/java"
-PAPER_VERSION := "26.2"
+DATA_DIR  := env_var_or_default("DATA_DIR", env_var('HOME') + "/data")
+BIN_DIR   := env_var_or_default("BIN_DIR", env_var('HOME') + "/bin")
+PAPER_VERSION := env_var_or_default("PAPER_VERSION", "26.2")
+MC_RAM_MIN := env_var_or_default("MC_RAM_MIN", "2G")
+MC_RAM_MAX := env_var_or_default("MC_RAM_MAX", "8G")
+
+MINECRAFT_DIR := DATA_DIR + "/minecraft"
+JAVA          := DATA_DIR + "/jdk/bin/java"
 
 [private]
 default:
     @just --list
 
-# Bootstrap the vlab environment (run once)
+# Bootstrap the environment (run once)
 bootstrap:
     bash bootstrap.sh
 
 # ── Minecraft ─────────────────────────────────────────────────────────────────
 
-# Start the Minecraft server
+# Start the Minecraft server (foreground)
 mc-start:
-    cd {{MINECRAFT_DIR}} && {{JAVA}} -Xms2G -Xmx8G \
+    cd {{MINECRAFT_DIR}} && {{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
       -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
       -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
       -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
@@ -33,29 +37,29 @@ mc-start:
 mc-up:
     tmux has-session -t minecraft 2>/dev/null && echo "already running" || \
       tmux new-session -d -s minecraft "cd {{MINECRAFT_DIR}} && just mc-start"
-    @echo "Minecraft running in tmux session 'minecraft'"
+    @echo "Minecraft running — attach with: just mc-console"
 
 # Stop Minecraft (graceful)
 mc-down:
-    tmux send-keys -t minecraft "stop" Enter 2>/dev/null || true
+    -tmux send-keys -t minecraft "stop" Enter 2>/dev/null
     @echo "stop sent"
 
 # Attach to Minecraft console
 mc-console:
     tmux attach -t minecraft
 
-# Show Minecraft server status
+# Show Minecraft status
 mc-status:
     @tmux has-session -t minecraft 2>/dev/null && echo "running" || echo "stopped"
 
 # ── Tunnel ────────────────────────────────────────────────────────────────────
 
-# Start playit.gg tunnel
+# Start playit.gg tunnel (interactive — follow the claim URL)
 tunnel-playit:
     mkdir -p ~/.config/playit_gg
-    ~/bin/playit
+    {{BIN_DIR}}/playit
 
-# Start frpc tunnel
+# Start frpc tunnel (foreground)
 tunnel-frp:
     frpc -c ~/.config/frp/frpc.toml
 
@@ -73,10 +77,10 @@ tunnel-frp-down:
 
 # ── Full stack ────────────────────────────────────────────────────────────────
 
-# Start Minecraft + playit tunnel
+# Start Minecraft in background, then prompt for tunnel
 up:
     just mc-up
-    @echo "Start tunnel with: just tunnel-playit"
+    @echo "Start tunnel with: just tunnel-playit  (or just tunnel-frp-up)"
 
 # Stop everything
 down:
@@ -85,5 +89,5 @@ down:
 
 # Show status of all services
 status:
-    @echo "Minecraft: $(just mc-status)"
-    @tmux has-session -t frpc 2>/dev/null && echo "frpc: running" || echo "frpc: stopped"
+    @echo "Minecraft : $(just mc-status)"
+    @tmux has-session -t frpc 2>/dev/null && echo "frpc      : running" || echo "frpc      : stopped"

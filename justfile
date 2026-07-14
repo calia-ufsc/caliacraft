@@ -40,7 +40,17 @@ mc-up:
     @tmux has-session -t minecraft 2>/dev/null \
       && echo "already running — attach with: just mc-console" \
       || (tmux new-session -d -s minecraft -c {{MINECRAFT_DIR}} \
-            "just mc-start" \
+            "{{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
+              -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
+              -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
+              -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
+              -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
+              -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 \
+              -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 \
+              -XX:G1MixedGCLiveThresholdPercent=90 \
+              -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
+              -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
+              -jar paper-{{PAPER_VERSION}}.jar nogui" \
           && echo "Minecraft started — attach with: just mc-console")
 
 # Send a graceful stop to the Minecraft server
@@ -72,7 +82,7 @@ tunnel-frp:
 tunnel-frp-up:
     @tmux has-session -t frpc 2>/dev/null \
       && echo "already running — attach with: just tunnel-frp-console" \
-      || (tmux new-session -d -s frpc "frpc -c ~/.config/frp/frpc.toml" \
+      || (tmux new-session -d -s frpc "{{BIN_DIR}}/frpc -c ~/.config/frp/frpc.toml" \
           && echo "frpc started — attach with: just tunnel-frp-console")
 
 # Stop the frp tunnel

@@ -83,7 +83,7 @@ just tunnel-playit-console  # abra para ver e seguir a URL de claim na primeira 
 ```
 
 ### frp (auto-hospedado)
-Requer um VPS com frps rodando. Edite `~/.config/frp/frpc.toml` com os dados do seu servidor.
+Requer um VPS com frps rodando. Preencha `FRP_SERVER_ADDR` e `FRP_TOKEN` no `.env`.
 
 ```bash
 just tunnel-frp-up

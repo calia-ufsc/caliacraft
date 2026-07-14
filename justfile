@@ -1,10 +1,10 @@
 set dotenv-load
 
-DATA_DIR  := env_var_or_default("DATA_DIR", env_var('HOME') + "/data")
-BIN_DIR   := env_var_or_default("BIN_DIR", env_var('HOME') + "/bin")
+DATA_DIR      := env_var_or_default("DATA_DIR", env_var('HOME') + "/data")
+BIN_DIR       := env_var_or_default("BIN_DIR", env_var('HOME') + "/bin")
 PAPER_VERSION := env_var_or_default("PAPER_VERSION", "26.2")
-MC_RAM_MIN := env_var_or_default("MC_RAM_MIN", "2G")
-MC_RAM_MAX := env_var_or_default("MC_RAM_MAX", "8G")
+MC_RAM_MIN    := env_var_or_default("MC_RAM_MIN", "2G")
+MC_RAM_MAX    := env_var_or_default("MC_RAM_MAX", "8G")
 
 MINECRAFT_DIR := DATA_DIR + "/minecraft"
 JAVA          := DATA_DIR + "/jdk/bin/java"
@@ -13,13 +13,15 @@ JAVA          := DATA_DIR + "/jdk/bin/java"
 default:
     @just --list
 
-# Bootstrap the environment (run once)
+# ── Setup ─────────────────────────────────────────────────────────────────────
+
+# Install all dependencies and configure the environment (run once)
 bootstrap:
     bash bootstrap.sh
 
 # ── Minecraft ─────────────────────────────────────────────────────────────────
 
-# Start the Minecraft server (foreground)
+# Start the Minecraft server in the foreground (useful for debugging)
 mc-start:
     cd {{MINECRAFT_DIR}} && {{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
       -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
@@ -33,56 +35,67 @@ mc-start:
       -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
       -jar paper-{{PAPER_VERSION}}.jar nogui
 
-# Start Minecraft in background (tmux)
+# Start the Minecraft server in a background tmux session
 mc-up:
-    tmux has-session -t minecraft 2>/dev/null && echo "already running" || \
-      tmux new-session -d -s minecraft "cd {{MINECRAFT_DIR}} && just mc-start"
-    @echo "Minecraft running — attach with: just mc-console"
+    @tmux has-session -t minecraft 2>/dev/null \
+      && echo "already running — attach with: just mc-console" \
+      || (tmux new-session -d -s minecraft -c {{MINECRAFT_DIR}} \
+            "just mc-start" \
+          && echo "Minecraft started — attach with: just mc-console")
 
-# Stop Minecraft (graceful)
+# Send a graceful stop to the Minecraft server
 mc-down:
-    -tmux send-keys -t minecraft "stop" Enter 2>/dev/null
-    @echo "stop sent"
+    @tmux has-session -t minecraft 2>/dev/null \
+      && (tmux send-keys -t minecraft "stop" Enter && echo "stop sent") \
+      || echo "server is not running"
 
-# Attach to Minecraft console
+# Attach to the Minecraft server console (detach with Ctrl+B D)
 mc-console:
     tmux attach -t minecraft
 
-# Show Minecraft status
+# Show whether the Minecraft server is running
 mc-status:
     @tmux has-session -t minecraft 2>/dev/null && echo "running" || echo "stopped"
 
 # ── Tunnel ────────────────────────────────────────────────────────────────────
 
-# Start playit.gg tunnel (interactive — follow the claim URL)
+# Start the playit.gg tunnel interactively (follow the claim URL on first run)
 tunnel-playit:
     mkdir -p ~/.config/playit_gg
     {{BIN_DIR}}/playit
 
-# Start frpc tunnel (foreground)
+# Start the frp tunnel in the foreground
 tunnel-frp:
     frpc -c ~/.config/frp/frpc.toml
 
-# Start frpc tunnel in background (tmux)
+# Start the frp tunnel in a background tmux session
 tunnel-frp-up:
-    tmux has-session -t frpc 2>/dev/null && echo "already running" || \
-      tmux new-session -d -s frpc "frpc -c ~/.config/frp/frpc.toml"
-    @echo "frpc running in tmux session 'frpc'"
+    @tmux has-session -t frpc 2>/dev/null \
+      && echo "already running — attach with: just tunnel-frp-console" \
+      || (tmux new-session -d -s frpc "frpc -c ~/.config/frp/frpc.toml" \
+          && echo "frpc started — attach with: just tunnel-frp-console")
 
-# Stop frpc tunnel
+# Stop the frp tunnel
 tunnel-frp-down:
-    -pkill -f frpc 2>/dev/null
-    -tmux kill-session -t frpc 2>/dev/null
-    @echo "frpc stopped"
+    @tmux has-session -t frpc 2>/dev/null \
+      && (tmux kill-session -t frpc && echo "frpc stopped") \
+      || echo "frpc is not running"
+
+# Attach to the frp tunnel session (detach with Ctrl+B D)
+tunnel-frp-console:
+    tmux attach -t frpc
 
 # ── Full stack ────────────────────────────────────────────────────────────────
 
-# Start Minecraft in background, then prompt for tunnel
+# Start Minecraft in background and prompt for tunnel choice
 up:
     just mc-up
-    @echo "Start tunnel with: just tunnel-playit  (or just tunnel-frp-up)"
+    @echo ""
+    @echo "Start a tunnel:"
+    @echo "  just tunnel-playit    # playit.gg (interactive, follow the claim URL)"
+    @echo "  just tunnel-frp-up    # frp (background, requires ~/.config/frp/frpc.toml)"
 
-# Stop everything
+# Stop Minecraft and the frp tunnel
 down:
     just mc-down
     just tunnel-frp-down

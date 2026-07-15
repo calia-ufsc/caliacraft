@@ -14,13 +14,15 @@ fi
 
 # server.properties — only the settings we care about; Minecraft fills in the rest on first run
 if [ ! -f "$MINECRAFT_DIR/server.properties" ]; then
-  cat > "$MINECRAFT_DIR/server.properties" << 'EOF'
-online-mode=false
-difficulty=normal
-spawn-protection=0
-enforce-secure-profile=false
-view-distance=6
-simulation-distance=4
+  cat > "$MINECRAFT_DIR/server.properties" << EOF
+online-mode=${MC_ONLINE_MODE}
+difficulty=${MC_DIFFICULTY}
+spawn-protection=${MC_SPAWN_PROTECTION}
+enforce-secure-profile=${MC_ENFORCE_SECURE_PROFILE}
+view-distance=${MC_VIEW_DISTANCE}
+simulation-distance=${MC_SIMULATION_DISTANCE}
+motd=${MC_MOTD}
+max-players=${MC_MAX_PLAYERS}
 EOF
   ok "server.properties created"
 else

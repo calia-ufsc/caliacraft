@@ -38,6 +38,15 @@ Todas as opções ficam no `.env`. O schema completo está em [`envow.toml`](env
 | minecraft | `SERVER_PACK_URL` | — | ZIP do server pack do CurseForge |
 | minecraft | `MC_RAM_MIN` | `4G` | Heap mínimo da JVM (-Xms) |
 | minecraft | `MC_RAM_MAX` | `12G` | Heap máximo da JVM (-Xmx) |
+| minecraft | `MC_GC_THREADS` | auto | Threads de GC (padrão: min(nproc/4, 16)) |
+| minecraft | `MC_VIEW_DISTANCE` | `6` | Distância de visão (chunks) |
+| minecraft | `MC_SIMULATION_DISTANCE` | `4` | Distância de simulação (mobs, redstone) |
+| minecraft | `MC_DIFFICULTY` | `normal` | Dificuldade do jogo |
+| minecraft | `MC_MOTD` | `caliacraft` | Mensagem do servidor |
+| minecraft | `MC_MAX_PLAYERS` | `20` | Máximo de jogadores simultâneos |
+| minecraft | `MC_ONLINE_MODE` | `false` | Autenticação Mojang (false = aceita clientes cracked) |
+| minecraft | `MC_SPAWN_PROTECTION` | `0` | Raio de proteção do spawn (0 = desativado) |
+| minecraft | `MC_ENFORCE_SECURE_PROFILE` | `false` | Exige chat assinado |
 | tunnel | `TUNNEL_MODE` | `frp` | `frp` ou `playit` |
 | tunnel | `FRP_SERVER_ADDR` | — | IP/host do servidor frps |
 | tunnel | `FRP_TOKEN` | — | Token de autenticação frp |

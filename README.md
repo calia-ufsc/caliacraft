@@ -17,29 +17,37 @@ Roda como um processo Java comum, com playit.gg ou frp para acesso externo. Sem 
 ```bash
 git clone https://github.com/calia-ufsc/caliacraft
 cd caliacraft
-cp .env.example .env
+cp .env.example .env   # ou: envow generate
 # edite o .env conforme necessário
 bash bootstrap.sh
 ```
 
 ## Configuração
 
-Todas as opções ficam no `.env`:
+Todas as opções ficam no `.env`. O schema completo está em [`envow.toml`](envow.toml) — use `envow generate` para regenerar o `.env.example` e `envow validate` para checar antes de subir o servidor.
 
-| Variável | Padrão | Descrição |
-|---|---|---|
-| `DATA_DIR` | `~/data` | Onde os dados do servidor e o JDK são armazenados — aponte para um diretório persistente se necessário |
-| `BIN_DIR` | `~/bin` | Onde os binários são instalados |
-| `NEOFORGE_VERSION` | `21.1.228` | Versão do NeoForge (Minecraft 1.21.1) |
-| `MC_RAM_MIN` | `2G` | Heap mínimo da JVM |
-| `MC_RAM_MAX` | `8G` | Heap máximo da JVM |
+| Seção | Variável | Padrão | Descrição |
+|---|---|---|---|
+| directories | `DATA_DIR` | `~/data` | Raiz dos dados persistentes |
+| directories | `BIN_DIR` | `~/bin` | Diretório de binários do usuário |
+| java | `JAVA_URL` | Zulu JDK 21.0.7 | URL do tarball do JDK |
+| tools | `JUST_VERSION` | `1.56.0` | Versão do just |
+| tools | `PLAYIT_VERSION` | `0.15.26` | Versão do playit |
+| tools | `FRP_VERSION` | `0.70.0` | Versão do frp |
+| minecraft | `NEOFORGE_VERSION` | `21.1.233` | Versão do NeoForge (MC 1.21.1) |
+| minecraft | `SERVER_PACK_URL` | — | ZIP do server pack do CurseForge |
+| minecraft | `MC_RAM_MIN` | `4G` | Heap mínimo da JVM (-Xms) |
+| minecraft | `MC_RAM_MAX` | `12G` | Heap máximo da JVM (-Xmx) |
+| tunnel | `TUNNEL_MODE` | `frp` | `frp` ou `playit` |
+| tunnel | `FRP_SERVER_ADDR` | — | IP/host do servidor frps |
+| tunnel | `FRP_TOKEN` | — | Token de autenticação frp |
 
 ## Comandos
 
 ### Setup
 
 ```
-just bootstrap          # instala Java 25, PaperMC, just, playit e frpc (executar uma vez)
+just bootstrap          # valida o .env e executa os scripts 01–05 em sequência (executar uma vez)
 ```
 
 ### Servidor

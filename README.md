@@ -1,6 +1,6 @@
 # caliacraft
 
-Servidor de Minecraft (PaperMC) para ambientes Linux sem acesso root.
+Servidor de Minecraft (NeoForge 1.21.1) para ambientes Linux sem acesso root.
 
 Roda como um processo Java comum, com playit.gg ou frp para acesso externo. Sem Docker, sem sudo.
 
@@ -30,7 +30,7 @@ Todas as opções ficam no `.env`:
 |---|---|---|
 | `DATA_DIR` | `~/data` | Onde os dados do servidor e o JDK são armazenados — aponte para um diretório persistente se necessário |
 | `BIN_DIR` | `~/bin` | Onde os binários são instalados |
-| `PAPER_VERSION` | `26.2` | Versão do Minecraft / PaperMC |
+| `NEOFORGE_VERSION` | `21.1.228` | Versão do NeoForge (Minecraft 1.21.1) |
 | `MC_RAM_MIN` | `2G` | Heap mínimo da JVM |
 | `MC_RAM_MAX` | `8G` | Heap máximo da JVM |
 
@@ -92,6 +92,7 @@ just tunnel-frp-up
 ## Observações
 
 - `online-mode` está desativado por padrão — necessário para launchers não-oficiais
-- O Java 25 é instalado localmente em `$DATA_DIR/jdk`, sem alterar o Java do sistema
+- O Java 21 é instalado localmente em `$DATA_DIR/jdk`, sem alterar o Java do sistema
+- Os JVM args ficam em `$DATA_DIR/minecraft/user_jvm_args.txt` — editável sem rebootstrap
 - Processos em background usam `nohup` — PIDs e logs ficam em `$DATA_DIR/run/`
 - Todos os binários vão para `$BIN_DIR` — nenhum comando requer sudo

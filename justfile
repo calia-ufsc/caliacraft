@@ -1,13 +1,12 @@
 set dotenv-load
 
-DATA_DIR      := env_var_or_default("DATA_DIR", env_var('HOME') + "/data")
-BIN_DIR       := env_var_or_default("BIN_DIR", env_var('HOME') + "/bin")
-PAPER_VERSION := env_var_or_default("PAPER_VERSION", "26.2")
-MC_RAM_MIN    := env_var_or_default("MC_RAM_MIN", "2G")
-MC_RAM_MAX    := env_var_or_default("MC_RAM_MAX", "8G")
+DATA_DIR          := env_var_or_default("DATA_DIR", env_var('HOME') + "/data")
+BIN_DIR           := env_var_or_default("BIN_DIR", env_var('HOME') + "/bin")
+NEOFORGE_VERSION  := env_var_or_default("NEOFORGE_VERSION", "21.1.228")
+MC_RAM_MIN        := env_var_or_default("MC_RAM_MIN", "2G")
+MC_RAM_MAX        := env_var_or_default("MC_RAM_MAX", "8G")
 
 MINECRAFT_DIR := DATA_DIR + "/minecraft"
-JAVA          := DATA_DIR + "/jdk/bin/java"
 RUN_DIR       := DATA_DIR + "/run"
 
 [private]
@@ -24,17 +23,7 @@ bootstrap:
 
 # Start the Minecraft server in the foreground (useful for debugging)
 mc-start:
-    cd {{MINECRAFT_DIR}} && {{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
-      -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
-      -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
-      -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
-      -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
-      -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 \
-      -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 \
-      -XX:G1MixedGCLiveThresholdPercent=90 \
-      -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
-      -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
-      -jar paper-{{PAPER_VERSION}}.jar nogui
+    cd {{MINECRAFT_DIR}} && bash run.sh
 
 # Start the Minecraft server in the background (nohup)
 mc-up:
@@ -46,18 +35,7 @@ mc-up:
       exit 0
     fi
     cd {{MINECRAFT_DIR}}
-    nohup {{JAVA}} -Xms{{MC_RAM_MIN}} -Xmx{{MC_RAM_MAX}} \
-      -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 \
-      -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC \
-      -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 \
-      -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M \
-      -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 \
-      -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 \
-      -XX:G1MixedGCLiveThresholdPercent=90 \
-      -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 \
-      -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 \
-      -jar paper-{{PAPER_VERSION}}.jar nogui \
-      > {{RUN_DIR}}/minecraft.log 2>&1 &
+    nohup bash run.sh > {{RUN_DIR}}/minecraft.log 2>&1 &
     echo $! > "$PID_FILE"
     echo "Minecraft started (pid $!) — logs: just mc-logs"
 

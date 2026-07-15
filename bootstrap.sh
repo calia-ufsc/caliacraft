@@ -6,7 +6,9 @@ set -euo pipefail
 
 DATA_DIR="${DATA_DIR:-$HOME/data}"
 BIN_DIR="${BIN_DIR:-$HOME/bin}"
-PAPER_VERSION="${PAPER_VERSION:-26.2}"
+NEOFORGE_VERSION="${NEOFORGE_VERSION:-21.1.228}"
+MC_RAM_MIN="${MC_RAM_MIN:-2G}"
+MC_RAM_MAX="${MC_RAM_MAX:-8G}"
 MINECRAFT_DIR="$DATA_DIR/minecraft"
 
 step() { echo; echo "── $1 ──────────────────────────────────────────────"; }
@@ -29,12 +31,12 @@ else
 fi
 export PATH="$BIN_DIR:$DATA_DIR/jdk/bin:$PATH"
 
-# ── Java 25 ──────────────────────────────────────────────────────────────────
-step "Java 25"
+# ── Java 21 ──────────────────────────────────────────────────────────────────
+step "Java 21"
 if [ ! -f "$DATA_DIR/jdk/bin/java" ]; then
-  info "Downloading Zulu JDK 25..."
+  info "Downloading Zulu JDK 21..."
   curl -Lo /tmp/jdk.tar.gz \
-    "https://cdn.azul.com/zulu/bin/zulu25.34.17-ca-crac-jdk25.0.3-linux_x64.tar.gz"
+    "https://cdn.azul.com/zulu/bin/zulu21.42.19-ca-jdk21.0.7-linux_x64.tar.gz"
   mkdir -p "$DATA_DIR/jdk"
   tar -xzf /tmp/jdk.tar.gz -C "$DATA_DIR/jdk" --strip-components=1
   rm /tmp/jdk.tar.gz
@@ -82,19 +84,23 @@ else
   ok "Already installed"
 fi
 
-# ── PaperMC ──────────────────────────────────────────────────────────────────
-step "PaperMC $PAPER_VERSION"
-PAPER_JAR="$MINECRAFT_DIR/paper-${PAPER_VERSION}.jar"
-if [ ! -f "$PAPER_JAR" ]; then
-  info "Fetching latest build URL..."
-  PAPER_URL=$(curl -s -H "User-Agent: caliacraft/1.0" \
-    "https://fill.papermc.io/v3/projects/paper/versions/${PAPER_VERSION}/builds" \
-    | python3 -c "import sys,json; builds=json.load(sys.stdin); b=builds[-1]; print(b['downloads']['server:default']['url'])")
-  info "Downloading $(basename "$PAPER_URL")..."
-  curl -Lo "$PAPER_JAR" -H "User-Agent: caliacraft/1.0" "$PAPER_URL"
-  ok "PaperMC downloaded"
+# ── NeoForge ─────────────────────────────────────────────────────────────────
+step "NeoForge $NEOFORGE_VERSION"
+INSTALLER_JAR="$MINECRAFT_DIR/neoforge-${NEOFORGE_VERSION}-installer.jar"
+if [ ! -f "$MINECRAFT_DIR/run.sh" ]; then
+  if [ ! -f "$INSTALLER_JAR" ]; then
+    info "Downloading NeoForge installer..."
+    curl -Lo "$INSTALLER_JAR" \
+      "https://maven.neoforged.net/releases/net/neoforged/neoforge/${NEOFORGE_VERSION}/neoforge-${NEOFORGE_VERSION}-installer.jar"
+  fi
+  info "Running NeoForge installer (this may take a few minutes)..."
+  cd "$MINECRAFT_DIR"
+  "$DATA_DIR/jdk/bin/java" -jar "$INSTALLER_JAR" --installServer
+  rm -f "$INSTALLER_JAR"
+  cd - > /dev/null
+  ok "NeoForge installed"
 else
-  ok "Already downloaded: $(basename "$PAPER_JAR")"
+  ok "Already installed"
 fi
 
 # ── Minecraft config ─────────────────────────────────────────────────────────
@@ -115,6 +121,35 @@ EOF
   ok "server.properties created"
 else
   ok "server.properties already exists"
+fi
+
+# NeoForge reads JVM args from user_jvm_args.txt
+if [ ! -f "$MINECRAFT_DIR/user_jvm_args.txt" ]; then
+  cat > "$MINECRAFT_DIR/user_jvm_args.txt" << EOF
+-Xms${MC_RAM_MIN}
+-Xmx${MC_RAM_MAX}
+-XX:+UseG1GC
+-XX:+ParallelRefProcEnabled
+-XX:MaxGCPauseMillis=200
+-XX:+UnlockExperimentalVMOptions
+-XX:+DisableExplicitGC
+-XX:+AlwaysPreTouch
+-XX:G1NewSizePercent=30
+-XX:G1MaxNewSizePercent=40
+-XX:G1HeapRegionSize=8M
+-XX:G1ReservePercent=20
+-XX:G1HeapWastePercent=5
+-XX:G1MixedGCCountTarget=4
+-XX:InitiatingHeapOccupancyPercent=15
+-XX:G1MixedGCLiveThresholdPercent=90
+-XX:G1RSetUpdatingPauseTimePercent=5
+-XX:SurvivorRatio=32
+-XX:+PerfDisableSharedMem
+-XX:MaxTenuringThreshold=1
+EOF
+  ok "user_jvm_args.txt created"
+else
+  ok "user_jvm_args.txt already exists"
 fi
 
 # ── frpc config template ─────────────────────────────────────────────────────

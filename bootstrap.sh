@@ -103,6 +103,55 @@ else
   ok "Already installed"
 fi
 
+# ── Server pack (mods) ───────────────────────────────────────────────────────
+step "Server pack"
+SERVER_PACK_URL="${SERVER_PACK_URL:-}"
+if [ -n "$SERVER_PACK_URL" ]; then
+  if [ ! -d "$MINECRAFT_DIR/mods" ] || [ -z "$(ls -A "$MINECRAFT_DIR/mods" 2>/dev/null)" ]; then
+    info "Downloading server pack..."
+    curl -Lo /tmp/serverpack.zip "$SERVER_PACK_URL"
+    info "Extracting mods and config..."
+    python3 - << PYEOF
+import zipfile, os, shutil
+
+src = "/tmp/serverpack.zip"
+dst = "$MINECRAFT_DIR"
+
+with zipfile.ZipFile(src) as z:
+    members = z.namelist()
+    # detect if pack is wrapped in a top-level folder
+    prefix = ""
+    dirs = {m.split("/")[0] for m in members if "/" in m}
+    if len(dirs) == 1:
+        prefix = list(dirs)[0] + "/"
+
+    keep = ("mods/", "config/", "defaultconfigs/", "kubejs/", "scripts/", "openloader/")
+    skip = ("server.properties", "eula.txt", "run.sh", "run.bat", "user_jvm_args.txt")
+
+    for member in members:
+        rel = member[len(prefix):]
+        if not rel or any(rel.startswith(k) for k in keep):
+            if any(rel == s for s in skip):
+                continue
+            target = os.path.join(dst, rel)
+            if member.endswith("/"):
+                os.makedirs(target, exist_ok=True)
+            else:
+                os.makedirs(os.path.dirname(target), exist_ok=True)
+                with z.open(member) as src_f, open(target, "wb") as dst_f:
+                    shutil.copyfileobj(src_f, dst_f)
+
+print("  done")
+PYEOF
+    rm /tmp/serverpack.zip
+    ok "Server pack extracted ($(ls "$MINECRAFT_DIR/mods" | wc -l) mods)"
+  else
+    ok "Mods already installed ($(ls "$MINECRAFT_DIR/mods" | wc -l) mods)"
+  fi
+else
+  ok "SERVER_PACK_URL not set — skipping (vanilla NeoForge)"
+fi
+
 # ── Minecraft config ─────────────────────────────────────────────────────────
 step "Minecraft config"
 if [ ! -f "$MINECRAFT_DIR/eula.txt" ]; then

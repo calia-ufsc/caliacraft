@@ -50,8 +50,10 @@ if [ ! -f "$MINECRAFT_DIR/user_jvm_args.txt" ]; then
 -XX:SurvivorRatio=32
 -XX:+PerfDisableSharedMem
 -XX:MaxTenuringThreshold=1
+-XX:ConcGCThreads=${MC_GC_THREADS}
+-XX:ParallelGCThreads=$(( MC_GC_THREADS * 2 ))
 EOF
-  ok "user_jvm_args.txt created (${MC_RAM_MIN}–${MC_RAM_MAX})"
+  ok "user_jvm_args.txt created (${MC_RAM_MIN}–${MC_RAM_MAX}, GC threads: ${MC_GC_THREADS}/${MC_GC_THREADS_PAR:-$(( MC_GC_THREADS * 2 ))})"
 else
   ok "user_jvm_args.txt already exists"
 fi

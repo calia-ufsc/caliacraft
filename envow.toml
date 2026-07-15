@@ -15,6 +15,7 @@ NEOFORGE_VERSION = { type = "string", default = "21.1.233", description = "NeoFo
 SERVER_PACK_URL  = { type = "url",    required = false,     example = "https://www.curseforge.com/api/v1/mods/462042/files/8339528/download", description = "CurseForge server pack ZIP — leave unset for vanilla NeoForge" }
 MC_RAM_MIN       = { type = "string", default = "4G",       description = "JVM minimum heap (-Xms)" }
 MC_RAM_MAX       = { type = "string", default = "12G",      description = "JVM maximum heap (-Xmx)" }
+MC_GC_THREADS    = { type = "int",    required = false,     example = "8", description = "GC thread count — defaults to min(nproc/4, 16)" }
 
 [tunnel]
 TUNNEL_MODE    = { type = "string", default = "frp", choices = ["frp", "playit"], description = "Which tunnel to use for external access" }

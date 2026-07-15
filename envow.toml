@@ -19,7 +19,7 @@ MC_GC_THREADS         = { type = "int",    required = false,     example = "8", 
 MC_VIEW_DISTANCE      = { type = "int",    default = "6",        description = "Chunk view distance (server-side)" }
 MC_SIMULATION_DISTANCE = { type = "int",   default = "4",        description = "Chunk simulation distance (mobs, redstone, etc.)" }
 MC_DIFFICULTY         = { type = "string", default = "normal",   choices = ["peaceful", "easy", "normal", "hard"], description = "Game difficulty" }
-MC_MOTD               = { type = "string", default = "caliacraft", description = "Server message of the day" }
+MC_MOTD               = { type = "string", default = "🎲 caliacraft", description = "Server message of the day" }
 MC_MAX_PLAYERS        = { type = "int",    default = "20",       description = "Maximum concurrent players" }
 MC_ONLINE_MODE        = { type = "bool",   default = "false",    description = "Enforce Mojang authentication (false = allow cracked clients)" }
 MC_SPAWN_PROTECTION   = { type = "int",    default = "0",        description = "Radius of spawn protection (0 = disabled)" }

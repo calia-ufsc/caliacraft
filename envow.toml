@@ -1,31 +1,18 @@
 [directories]
-DATA_DIR = { type = "string", default = "$HOME/data",  description = "Persistent data root — on JupyterHub use ~/privado" }
-BIN_DIR  = { type = "string", default = "$HOME/bin",   description = "User binaries directory (no sudo needed)" }
-
-[java]
-JAVA_URL = { type = "url", default = "https://cdn.azul.com/zulu/bin/zulu21.42.19-ca-jdk21.0.7-linux_x64.tar.gz", description = "Zulu JDK 21 tarball download URL" }
-
-[tools]
-JUST_VERSION   = { type = "string", default = "1.56.0",  description = "just task runner version" }
-PLAYIT_VERSION = { type = "string", default = "0.15.26", description = "playit.gg agent version" }
-FRP_VERSION    = { type = "string", default = "0.70.0",  description = "frp (frpc/frps) version" }
+DATA_DIR = { type = "string", default = "$HOME/data", description = "Persistent data root — must match the vlab provisioning DATA_DIR" }
+BIN_DIR  = { type = "string", default = "$HOME/bin",  description = "User binaries directory — must match the vlab provisioning BIN_DIR" }
 
 [minecraft]
-NEOFORGE_VERSION = { type = "string", default = "21.1.233", description = "NeoForge version (Minecraft 1.21.1)" }
-SERVER_PACK_URL  = { type = "url",    required = false,     example = "https://www.curseforge.com/api/v1/mods/462042/files/8339528/download", description = "CurseForge server pack ZIP — leave unset for vanilla NeoForge" }
-MC_RAM_MIN            = { type = "string", default = "4G",       description = "JVM minimum heap (-Xms)" }
-MC_RAM_MAX            = { type = "string", default = "12G",      description = "JVM maximum heap (-Xmx)" }
-MC_GC_THREADS         = { type = "int",    required = false,     example = "8",    description = "GC thread count — defaults to min(nproc/4, 16)" }
-MC_VIEW_DISTANCE      = { type = "int",    default = "6",        description = "Chunk view distance (server-side)" }
-MC_SIMULATION_DISTANCE = { type = "int",   default = "4",        description = "Chunk simulation distance (mobs, redstone, etc.)" }
-MC_DIFFICULTY         = { type = "string", default = "normal",   choices = ["peaceful", "easy", "normal", "hard"], description = "Game difficulty" }
-MC_MOTD               = { type = "string", default = "🎲 caliacraft", description = "Server message of the day" }
-MC_MAX_PLAYERS        = { type = "int",    default = "20",       description = "Maximum concurrent players" }
-MC_ONLINE_MODE        = { type = "bool",   default = "false",    description = "Enforce Mojang authentication (false = allow cracked clients)" }
-MC_SPAWN_PROTECTION   = { type = "int",    default = "0",        description = "Radius of spawn protection (0 = disabled)" }
-MC_ENFORCE_SECURE_PROFILE = { type = "bool", default = "false",  description = "Require signed player chat (false = allow unsigned)" }
-
-[tunnel]
-TUNNEL_MODE    = { type = "string", default = "frp", choices = ["frp", "playit"], description = "Which tunnel to use for external access" }
-FRP_SERVER_ADDR = { type = "string", required = false, example = "147.15.75.84", description = "frp server IP or hostname (only needed if TUNNEL_MODE=frp)" }
-FRP_TOKEN       = { type = "string", required = false, example = "your-token-here", description = "frp auth token (only needed if TUNNEL_MODE=frp)" }
+NEOFORGE_VERSION       = { type = "string", default = "21.1.233",      description = "NeoForge version (Minecraft 1.21.1)" }
+SERVER_PACK_URL        = { type = "url",    required = false,           example = "https://www.curseforge.com/api/v1/mods/462042/files/8339528/download", description = "CurseForge server pack ZIP — leave unset for vanilla NeoForge" }
+MC_RAM_MIN             = { type = "string", default = "4G",             description = "JVM minimum heap (-Xms)" }
+MC_RAM_MAX             = { type = "string", default = "12G",            description = "JVM maximum heap (-Xmx)" }
+MC_GC_THREADS          = { type = "int",    required = false,           example = "8", description = "GC thread count — defaults to min(nproc/4, 16)" }
+MC_VIEW_DISTANCE       = { type = "int",    default = "6",              description = "Chunk view distance (server-side)" }
+MC_SIMULATION_DISTANCE = { type = "int",    default = "4",              description = "Chunk simulation distance (mobs, redstone, etc.)" }
+MC_DIFFICULTY          = { type = "string", default = "normal",         choices = ["peaceful", "easy", "normal", "hard"], description = "Game difficulty" }
+MC_MOTD                = { type = "string", default = "🎲 caliacraft",  description = "Server message of the day" }
+MC_MAX_PLAYERS         = { type = "int",    default = "20",             description = "Maximum concurrent players" }
+MC_ONLINE_MODE         = { type = "bool",   default = "false",          description = "Enforce Mojang authentication (false = allow cracked clients)" }
+MC_SPAWN_PROTECTION    = { type = "int",    default = "0",              description = "Radius of spawn protection (0 = disabled)" }
+MC_ENFORCE_SECURE_PROFILE = { type = "bool", default = "false",         description = "Require signed player chat (false = allow unsigned)" }

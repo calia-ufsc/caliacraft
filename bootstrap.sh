@@ -43,8 +43,11 @@ bash "$ROOT_DIR/scripts/03-neoforge.sh"
 step "04 · Mods"
 bash "$ROOT_DIR/scripts/04-mods.sh"
 
-step "05 · Server config"
-bash "$ROOT_DIR/scripts/05-config.sh"
+step "05 · Server-side extras (backups, utilities)"
+bash "$ROOT_DIR/scripts/05-extras.sh"
+
+step "06 · Server config"
+bash "$ROOT_DIR/scripts/06-config.sh"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo

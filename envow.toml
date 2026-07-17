@@ -1,3 +1,6 @@
+[backups]
+R2_BUCKET = { type = "string", required = false, example = "caliacraft-backups", description = "R2 bucket name for world backups — set in vlab .env" }
+
 [directories]
 DATA_DIR = { type = "string", default = "$HOME/data", description = "Persistent data root — must match the vlab provisioning DATA_DIR" }
 BIN_DIR  = { type = "string", default = "$HOME/bin",  description = "User binaries directory — must match the vlab provisioning BIN_DIR" }

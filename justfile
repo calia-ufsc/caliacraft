@@ -95,6 +95,59 @@ mc-restore-mods:
       echo "nothing to restore"
     fi
 
+# ── Backups ───────────────────────────────────────────────────────────────────
+
+# Create a timestamped tar of the world folders
+backup:
+    #!/usr/bin/env bash
+    BACKUP_DIR={{DATA_DIR}}/backups
+    mkdir -p "$BACKUP_DIR"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    ARCHIVE="$BACKUP_DIR/world_${TIMESTAMP}.tar.gz"
+    echo "Creating backup: $ARCHIVE"
+    tar -czf "$ARCHIVE" -C {{MINECRAFT_DIR}} world world_nether world_the_end 2>/dev/null || true
+    echo "Done: $(du -sh "$ARCHIVE" | cut -f1)"
+
+# Sync backups folder to R2
+backup-sync:
+    #!/usr/bin/env bash
+    source {{justfile_directory()}}/scripts/_env.sh
+    if [ -z "${R2_BUCKET:-}" ]; then
+      echo "error: R2_BUCKET not set in .env"
+      exit 1
+    fi
+    {{BIN_DIR}}/rclone sync {{DATA_DIR}}/backups/ r2:${R2_BUCKET}/caliacraft/ --progress
+
+# Run backup + sync in a loop every hour (nohup)
+backup-loop:
+    #!/usr/bin/env bash
+    mkdir -p {{RUN_DIR}}
+    PID_FILE={{RUN_DIR}}/backup.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      echo "already running (pid $(cat "$PID_FILE"))"
+      exit 0
+    fi
+    nohup bash -c 'while true; do
+      cd {{justfile_directory()}} && just backup && just backup-sync
+      sleep 3600
+    done' > {{RUN_DIR}}/backup.log 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "backup loop started (pid $!) — logs: just backup-logs"
+
+# Stop the backup loop
+backup-loop-down:
+    #!/usr/bin/env bash
+    PID_FILE={{RUN_DIR}}/backup.pid
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      kill "$(cat "$PID_FILE")" && rm "$PID_FILE" && echo "backup loop stopped"
+    else
+      echo "backup loop is not running"
+    fi
+
+# Tail the backup log
+backup-logs:
+    tail -f {{RUN_DIR}}/backup.log
+
 # ── Status ────────────────────────────────────────────────────────────────────
 
 # Show status of all caliacraft services

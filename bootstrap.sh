@@ -33,11 +33,8 @@ bash "$ROOT_DIR/scripts/01-neoforge.sh"
 step "02 · Mods"
 bash "$ROOT_DIR/scripts/02-mods.sh"
 
-step "03 · Server-side extras (FTB Backups 2)"
-bash "$ROOT_DIR/scripts/03-extras.sh"
-
-step "04 · Server config"
-bash "$ROOT_DIR/scripts/04-config.sh"
+step "03 · Server config"
+bash "$ROOT_DIR/scripts/03-config.sh"
 
 # ── Done ──────────────────────────────────────────────────────────────────────
 echo

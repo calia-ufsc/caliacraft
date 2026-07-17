@@ -112,8 +112,8 @@ backup:
 backup-sync:
     #!/usr/bin/env bash
     source {{justfile_directory()}}/scripts/_env.sh
-    if [ -z "${R2_BUCKET:-}" ]; then
-      echo "error: R2_BUCKET not set in .env"
+    if [ -z "${R2_BUCKET:-}" ] || [ -z "${R2_ENDPOINT:-}" ]; then
+      echo "error: R2_BUCKET and R2_ENDPOINT must be set in .env"
       exit 1
     fi
     {{BIN_DIR}}/rclone sync {{DATA_DIR}}/backups/ r2:${R2_BUCKET}/caliacraft/ --progress

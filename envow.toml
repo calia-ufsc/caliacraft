@@ -1,5 +1,8 @@
 [backups]
-R2_BUCKET = { type = "string", required = false, example = "caliacraft-backups", description = "R2 bucket name for world backups — set in vlab .env" }
+R2_ENDPOINT   = { type = "url",    required = false, example = "https://abc123.eu.r2.cloudflarestorage.com", description = "Cloudflare R2 endpoint URL — use .eu. subdomain for EU-jurisdiction buckets" }
+R2_ACCESS_KEY = { type = "string", required = false, description = "R2 API token access key" }
+R2_SECRET_KEY = { type = "string", required = false, description = "R2 API token secret key" }
+R2_BUCKET     = { type = "string", required = false, example = "caliacraft",                              description = "R2 bucket name for world backups" }
 
 [directories]
 DATA_DIR = { type = "string", default = "$HOME/data", description = "Persistent data root — must match the vlab provisioning DATA_DIR" }
